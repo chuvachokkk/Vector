@@ -18,7 +18,6 @@ interface Dictionary {
 }
 const dictionary = rawDictionary as Dictionary;
 
-// Порядок колонок
 const statuses = Object.keys(dictionary.statuses).map(Number);
 
 const Container = styled.div`
@@ -70,7 +69,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({ onDeleteTask }) => {
     {} as Record<number, Task[]>
   );
 
-  const doneCount = tasksByStatus[3]?.length || 0; // статус «Готово» = 3
+  const doneCount = tasksByStatus[3]?.length || 0;
   const totalCount = tasks.length;
   const percentDone = totalCount
     ? Math.round((doneCount / totalCount) * 100)

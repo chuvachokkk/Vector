@@ -51,6 +51,16 @@ const IconButton = styled.img`
   cursor: pointer;
 `;
 
+const EditButton = styled.span`
+  margin-left: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  user-select: none;
+  &:hover {
+    color: #0052cc;
+  }
+`;
+
 const AssignmentRow = styled.div`
   display: flex;
   justify-content: space-between;
@@ -115,7 +125,6 @@ const Description = styled.p`
   margin: 0;
 `;
 
-
 const formatDate = (dateString: string): string => {
   const d = new Date(dateString);
   const m = d.getMonth() + 1;
@@ -124,10 +133,7 @@ const formatDate = (dateString: string): string => {
   return `${m}/${day}/${yy}`;
 };
 
-
 const priorityLabels = ['Low','Medium','High'];
-
-
 const statusIcons = [iconWaiting, iconInProgress, iconTesting, iconDone];
 
 interface TaskCardProps {
@@ -141,7 +147,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, index, onUpdate, onDelete }) 
   const [isEditing, setIsEditing] = useState(false);
 
   const handleSubmit = (data: any) => {
-    onUpdate({ ...task,
+    onUpdate({
+      ...task,
       taskName: data.taskName,
       description: data.description,
       dueDate: data.dueDate,
@@ -178,11 +185,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, index, onUpdate, onDelete }) 
               alt="Delete"
               onClick={e => { e.stopPropagation(); onDelete(task.id); }}
             />
-            <IconButton
-              src={CircleIcon}
-              alt="Edit"
-              onClick={e => { e.stopPropagation(); setIsEditing(true); }}
-            />
+            <EditButton onClick={e => { e.stopPropagation(); setIsEditing(true); }}>
+              ✎
+            </EditButton>
           </TitleRow>
 
           <AssignmentRow>
