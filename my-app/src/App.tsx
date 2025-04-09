@@ -1,4 +1,3 @@
-// src/App.tsx
 import React, { useState, useEffect } from 'react';
 import { Provider, useDispatch } from 'react-redux';
 import KanbanBoard from './components/KanbanBoard';
@@ -28,7 +27,6 @@ const AppContent: React.FC = () => {
   const [editingTask, setEditingTask] = useState<null | Task>(null);
 
   useEffect(() => {
-    // При загрузке добавляем id, если его нет — используем стабильное значение (индекс или существующий id)
     const tasksWithId = data.map((task: any, index: number) => ({
       id: task.id ? String(task.id) : (index + 1).toString(),
       ...task,
@@ -67,29 +65,16 @@ const AppContent: React.FC = () => {
   };
 
   const onSubmit = (formData: any) => {
-    if (editingTask) {
-      handleUpdateTask(formData);
-    } else {
-      handleAddTask(formData);
-    }
+    editingTask ? handleUpdateTask(formData) : handleAddTask(formData);
   };
 
-  const handleDeleteTask = (id: string) => {
-    dispatch(deleteTask(id));
-  };
-
-  const handleEditTask = (task: Task) => {
-    setEditingTask(task);
-    setShowForm(true);
-  };
+  const handleDeleteTask = (id: string) => dispatch(deleteTask(id));
+  const handleEditTask   = (task: Task) => { setEditingTask(task); setShowForm(true); };
 
   return (
     <AppContainer>
       <GlobalStyle />
-      <h1>Kanban Board Demo</h1>
-      <button onClick={() => { setEditingTask(null); setShowForm(true); }}>
-        Add Task
-      </button>
+      <h1>Задачи</h1>
       {showForm && (
         <AddEditTaskForm
           task={editingTask || undefined}

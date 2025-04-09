@@ -3,15 +3,23 @@ import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { useDispatch, useSelector } from 'react-redux';
 import Column from './Column';
 import { RootState } from '../store/store';
-import { changeTaskStatus } from '../store/tasksSlice';
+import { addTask, changeTaskStatus, Task } from '../store/tasksSlice';
 import styled from 'styled-components';
 import rawDictionary from '../assets/dictionay.json';
-import { Task } from '../store/tasksSlice';
 
 interface Dictionary {
   statuses: Record<string, string>;
 }
 const dictionary = rawDictionary as Dictionary;
+
+export interface InlineTaskData {
+  assigneeId: string;
+  dueDate: string;
+  priorityId: string;
+  description: string;
+}
+
+const statuses = Object.keys(dictionary.statuses).map(Number);
 
 const Container = styled.div`
   display: flex;
@@ -24,45 +32,57 @@ interface KanbanBoardProps {
   onDeleteTask: (id: string) => void;
 }
 
-const KanbanBoard: React.FC<KanbanBoardProps> = ({ onEditTask, onDeleteTask }) => {
+const KanbanBoard: React.FC<KanbanBoardProps> = ({
+  onEditTask,
+  onDeleteTask,
+}) => {
   const dispatch = useDispatch();
   const tasks = useSelector((state: RootState) => state.tasks.tasks);
 
-  // Получаем массив статусов (ключи преобразованы в числа)
-  const statuses = Object.keys(dictionary.statuses).map(Number);
-  
-  // Группируем задачи по statusId
-  const tasksByStatus = statuses.reduce((acc: { [key: number]: Task[] }, status) => {
-    acc[status] = tasks.filter(task => task.statusId === status);
-    return acc;
-  }, {});
+  const tasksByStatus = statuses.reduce(
+    (acc: Record<number, Task[]>, status) => {
+      acc[status] = tasks.filter((t) => t.statusId === status);
+      return acc;
+    },
+    {} as Record<number, Task[]>
+  );
 
   const onDragEnd = (result: DropResult) => {
-    console.log('onDragEnd result:', result);
-    if (!result.destination) return;
-    
-    const { draggableId, destination, source } = result;
-    
-    // Если перемещение внутри одной колонки, можно не обновлять статус
-    if (source.droppableId === destination.droppableId) return;
-    
-    const newStatusId = Number(destination.droppableId);
-    
-    setTimeout(() => {
-      dispatch(changeTaskStatus({ id: draggableId, statusId: newStatusId }));
-    }, 0);
+    if (
+      !result.destination ||
+      result.source.droppableId === result.destination.droppableId
+    )
+      return;
+    dispatch(
+      changeTaskStatus({
+        id: result.draggableId,
+        statusId: Number(result.destination.droppableId),
+      })
+    );
   };
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <Container>
-        {statuses.map(status => (
+        {statuses.map((status) => (
           <Column
             key={status}
             statusId={status}
             tasks={tasksByStatus[status] || []}
             onEdit={onEditTask}
             onDelete={onDeleteTask}
+            onAdd={(formData: InlineTaskData) => {
+              const newTask: Task = {
+                id: Date.now().toString(),
+                taskName: formData.description || 'Новая задача',
+                description: formData.description,
+                dueDate: formData.dueDate,
+                assigneeId: Number(formData.assigneeId),
+                priorityId: Number(formData.priorityId),
+                statusId: status,
+              };
+              dispatch(addTask(newTask));
+            }}
           />
         ))}
       </Container>

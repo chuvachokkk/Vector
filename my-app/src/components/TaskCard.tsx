@@ -1,13 +1,16 @@
-// src/components/TaskCard.tsx
 import React from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import styled from 'styled-components';
 import { Task } from '../store/tasksSlice';
 import rawDictionary from '../assets/dictionay.json';
 
-// Иконки
+import iconWaiting    from '../assets/zap.svg';
+import iconInProgress from '../assets/notepad-text.svg';
+import iconTesting    from '../assets/calendar-clock.svg'
+import iconDone       from '../assets/notepad-text1.svg';
+
 import CircleIcon from '../assets/Circle Icon.svg';
-import TrashIcon from '../assets/trash-2.svg';
+import TrashIcon  from '../assets/trash-2.svg';
 
 interface Dictionary {
   assignees: Record<string, string>;
@@ -15,10 +18,9 @@ interface Dictionary {
 }
 const dictionary = rawDictionary as Dictionary;
 
-// ========== styled-components ==========
 
 const Card = styled.div`
-  background: #ffffff;
+  background:rgb(236, 236, 236);
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 12px;
@@ -33,7 +35,7 @@ const TitleRow = styled.div`
 const TaskTitle = styled.h3`
   display: flex;
   align-items: center;
-  font-size: 16px;
+  font-size: 19px;
   margin: 0;
 
   img.task-icon {
@@ -45,8 +47,8 @@ const TaskTitle = styled.h3`
 
 const DeleteIcon = styled.img`
   margin-left: auto;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   cursor: pointer;
 `;
 
@@ -54,7 +56,7 @@ const AssignmentRow = styled.div`
   display: flex;
   justify-content: space-between;
   font-size: 16px;
-  color: #555;
+  color: #888;
   margin: 8px 0;
 `;
 
@@ -74,9 +76,9 @@ const DifficultyBadge = styled.div<{ priorityId: number }>`
   color: #fff;
   background-color: ${({ priorityId }) => {
     switch (priorityId) {
-      case 0: return '#36B38E';  // Easy
-      case 1: return '#FFAB00';  // Medium
-      case 2: return '#DE350B';  // High
+      case 0: return '#36B37E';
+      case 1: return '#FFAB00';
+      case 2: return '#DE350B';
       default: return '#777';
     }
   }};
@@ -89,35 +91,31 @@ const StatusBadge = styled.div<{ statusId: number }>`
   border-radius: 12px;
   font-size: 12px;
   font-weight: bold;
-  color: #fff;
+  color: gray;
   margin-left: 8px;
   background-color: ${({ statusId }) => {
     switch (statusId) {
-      case 0: return '#0052CC'; // В ожидании
-      case 1: return '#00875A'; // В работе
-      case 2: return '#FFAB00'; // Тестирование
-      case 3: return '#0747A6'; // Готово
+      case 0: return '#D4F7F3';
+      case 1: return '#F7F5D4';
+      case 2: return '#E7D4F7';
+      case 3: return '#D4E0F7';
       default: return '#777';
     }
   }};
+
+  img {
+    width: 19px;
+    height: 19px;
+    margin-right: 8px;
+  }
 `;
 
 const Description = styled.p`
-  font-size: 14px;
+  font-size: 17px;
   color: #333;
   margin: 0;
 `;
 
-// =======================================
-
-interface TaskCardProps {
-  task: Task;
-  index: number;
-  onEdit: (task: Task) => void;
-  onDelete: (id: string) => void;
-}
-
-// Форматирует дату в M/D/YY, например "4/4/25"
 const formatDate = (dateString: string): string => {
   const d = new Date(dateString);
   const m = d.getMonth() + 1;
@@ -126,7 +124,6 @@ const formatDate = (dateString: string): string => {
   return `${m}/${day}/${yy}`;
 };
 
-// Получаем текстовый лейбл приоритета
 const getPriorityLabel = (priorityId: number): string => {
   switch (priorityId) {
     case 0: return 'Easy';
@@ -135,6 +132,20 @@ const getPriorityLabel = (priorityId: number): string => {
     default: return 'Unknown';
   }
 };
+
+const statusIcons: Record<number, string> = {
+  0: iconWaiting,
+  1: iconInProgress,
+  2: iconTesting,
+  3: iconDone,
+};
+
+interface TaskCardProps {
+  task: Task;
+  index: number;
+  onEdit: (task: Task) => void;
+  onDelete: (id: string) => void;
+}
 
 const TaskCard: React.FC<TaskCardProps> = ({ task, index, onEdit, onDelete }) => {
   const assignee = dictionary.assignees[task.assigneeId.toString()];
@@ -150,7 +161,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, index, onEdit, onDelete }) =>
           {...provided.draggableProps}
           {...provided.dragHandleProps}
         >
-          {/* 1. Заголовок */}
           <TitleRow>
             <TaskTitle>
               <img className="task-icon" src={CircleIcon} alt="Task" />
@@ -162,24 +172,19 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, index, onEdit, onDelete }) =>
               onClick={e => { e.stopPropagation(); onDelete(task.id); }}
             />
           </TitleRow>
-
-          {/* 2. Исполнитель и дата */}
           <AssignmentRow>
             <span>{assignee}</span>
             <span>{formatDate(task.dueDate)}</span>
           </AssignmentRow>
-
-          {/* 3. Уровень сложности и 4. Статус */}
           <BadgesRow>
             <DifficultyBadge priorityId={priorityId}>
               {getPriorityLabel(priorityId)}
             </DifficultyBadge>
             <StatusBadge statusId={statusId}>
+              <img src={statusIcons[statusId]} alt={statusLabel} />
               {statusLabel}
             </StatusBadge>
           </BadgesRow>
-
-          {/* 5. Описание */}
           <Description>{task.description}</Description>
         </Card>
       )}
