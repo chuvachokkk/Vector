@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+// src/App.tsx
+import React, { useEffect } from 'react';
 import { Provider, useDispatch } from 'react-redux';
 import KanbanBoard from './components/KanbanBoard';
 import { store } from './store/store';
-import { setTasks, addTask, updateTask, deleteTask } from './store/tasksSlice';
-import AddEditTaskForm from './components/AddEditTaskForm';
+import { setTasks, deleteTask } from './store/tasksSlice';
 import data from './assets/data.json';
 import styled, { createGlobalStyle } from 'styled-components';
-import { Task } from './store/tasksSlice';
 
 const GlobalStyle = createGlobalStyle`
   body {
@@ -23,8 +22,6 @@ const AppContainer = styled.div`
 
 const AppContent: React.FC = () => {
   const dispatch = useDispatch();
-  const [showForm, setShowForm] = useState(false);
-  const [editingTask, setEditingTask] = useState<null | Task>(null);
 
   useEffect(() => {
     const tasksWithId = data.map((task: any, index: number) => ({
@@ -34,57 +31,15 @@ const AppContent: React.FC = () => {
     dispatch(setTasks(tasksWithId));
   }, [dispatch]);
 
-  const handleAddTask = (formData: any) => {
-    const newTask: Task = {
-      id: Date.now().toString(),
-      taskName: formData.taskName,
-      description: formData.description,
-      dueDate: formData.dueDate,
-      assigneeId: Number(formData.assigneeId),
-      priorityId: Number(formData.priorityId),
-      statusId: Number(formData.statusId),
-    };
-    dispatch(addTask(newTask));
-    setShowForm(false);
+  const handleDeleteTask = (id: string) => {
+    dispatch(deleteTask(id));
   };
-
-  const handleUpdateTask = (formData: any) => {
-    if (!editingTask) return;
-    const updatedTask: Task = {
-      ...editingTask,
-      taskName: formData.taskName,
-      description: formData.description,
-      dueDate: formData.dueDate,
-      assigneeId: Number(formData.assigneeId),
-      priorityId: Number(formData.priorityId),
-      statusId: Number(formData.statusId),
-    };
-    dispatch(updateTask(updatedTask));
-    setEditingTask(null);
-    setShowForm(false);
-  };
-
-  const onSubmit = (formData: any) => {
-    editingTask ? handleUpdateTask(formData) : handleAddTask(formData);
-  };
-
-  const handleDeleteTask = (id: string) => dispatch(deleteTask(id));
-  const handleEditTask   = (task: Task) => { setEditingTask(task); setShowForm(true); };
 
   return (
     <AppContainer>
       <GlobalStyle />
       <h1>Задачи</h1>
-      {showForm && (
-        <AddEditTaskForm
-          task={editingTask || undefined}
-          onSubmit={onSubmit}
-        />
-      )}
-      <KanbanBoard
-        onEditTask={handleEditTask}
-        onDeleteTask={handleDeleteTask}
-      />
+      <KanbanBoard onDeleteTask={handleDeleteTask} />
     </AppContainer>
   );
 };

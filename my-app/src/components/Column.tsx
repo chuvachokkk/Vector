@@ -27,14 +27,15 @@ const ColumnContainer = styled.div`
   border-radius: 8px;
   padding: 16px;
   margin: 8px;
-  min-height: 400px;
+  max-height: 70vh;
+  overflow-y: auto;
 `;
 
 const TitleWrapper = styled.div`
   display: flex;
   align-items: center;
   column-gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 11px;
 `;
 
 const CountBadge = styled.span`
@@ -47,9 +48,8 @@ const CountBadge = styled.span`
   color: #333;
 `;
 
-
 const softColors = ['#D4F7F3', '#F7F5D4', '#E7D4F7', '#D4E0F7'];
-const mainColors = ['rgb(61, 61, 61)', 'rgb(61, 61, 61)', 'rgb(61, 61, 61)', 'rgb(61, 61, 61)'];
+const mainColors = ['gray', 'gray', 'gray', 'gray'];
 
 const NewTaskButton = styled.button<{ $statusId: number }>`
   margin-top: auto;
@@ -65,8 +65,10 @@ const NewTaskButton = styled.button<{ $statusId: number }>`
   transition: background-color 0.2s ease, transform 0.1s ease;
 
   &:hover {
-    background-color: ${({ $statusId }) => 
-      softColors[$statusId].replace(/0\.1\)$/, '0.2)')};
+    background-color: ${({ $statusId }) => {
+      const c = softColors[$statusId];
+      return c.replace(/0\.1\)$/, '0.2)');
+    }};
     transform: translateY(-2px);
   }
   &:active {
@@ -84,16 +86,16 @@ const statusIcons: Record<number, string> = {
 interface ColumnProps {
   statusId: number;
   tasks: Task[];
-  onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
   onAdd: (data: InlineTaskData) => void;
+  onUpdate: (task: Task) => void;
 }
 
 const Column: React.FC<ColumnProps> = ({
   statusId,
   tasks,
   onAdd,
-  onEdit,
+  onUpdate,
   onDelete,
 }) => {
   const [isAdding, setIsAdding] = useState(false);
@@ -129,7 +131,7 @@ const Column: React.FC<ColumnProps> = ({
               key={task.id}
               task={task}
               index={idx}
-              onEdit={onEdit}
+              onUpdate={onUpdate}
               onDelete={onDelete}
             />
           ))}

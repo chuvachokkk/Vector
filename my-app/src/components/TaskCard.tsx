@@ -1,16 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import styled from 'styled-components';
 import { Task } from '../store/tasksSlice';
 import rawDictionary from '../assets/dictionay.json';
+import AddEditTaskForm from './AddEditTaskForm';
 
 import iconWaiting    from '../assets/zap.svg';
 import iconInProgress from '../assets/notepad-text.svg';
-import iconTesting    from '../assets/calendar-clock.svg'
+import iconTesting    from '../assets/calendar-clock.svg';
 import iconDone       from '../assets/notepad-text1.svg';
-
-import CircleIcon from '../assets/Circle Icon.svg';
-import TrashIcon  from '../assets/trash-2.svg';
+import CircleIcon     from '../assets/Circle Icon.svg';
+import TrashIcon      from '../assets/trash-2.svg';
 
 interface Dictionary {
   assignees: Record<string, string>;
@@ -18,9 +18,8 @@ interface Dictionary {
 }
 const dictionary = rawDictionary as Dictionary;
 
-
 const Card = styled.div`
-  background:rgb(236, 236, 236);
+  background: #ffffff;
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 12px;
@@ -35,7 +34,7 @@ const TitleRow = styled.div`
 const TaskTitle = styled.h3`
   display: flex;
   align-items: center;
-  font-size: 19px;
+  font-size: 16px;
   margin: 0;
 
   img.task-icon {
@@ -45,10 +44,10 @@ const TaskTitle = styled.h3`
   }
 `;
 
-const DeleteIcon = styled.img`
+const IconButton = styled.img`
   margin-left: auto;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   cursor: pointer;
 `;
 
@@ -56,7 +55,7 @@ const AssignmentRow = styled.div`
   display: flex;
   justify-content: space-between;
   font-size: 16px;
-  color: #888;
+  color: #555;
   margin: 8px 0;
 `;
 
@@ -104,17 +103,18 @@ const StatusBadge = styled.div<{ statusId: number }>`
   }};
 
   img {
-    width: 19px;
-    height: 19px;
-    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
   }
 `;
 
 const Description = styled.p`
-  font-size: 17px;
+  font-size: 14px;
   color: #333;
   margin: 0;
 `;
+
 
 const formatDate = (dateString: string): string => {
   const d = new Date(dateString);
@@ -124,34 +124,41 @@ const formatDate = (dateString: string): string => {
   return `${m}/${day}/${yy}`;
 };
 
-const getPriorityLabel = (priorityId: number): string => {
-  switch (priorityId) {
-    case 0: return 'Easy';
-    case 1: return 'Medium';
-    case 2: return 'High';
-    default: return 'Unknown';
-  }
-};
 
-const statusIcons: Record<number, string> = {
-  0: iconWaiting,
-  1: iconInProgress,
-  2: iconTesting,
-  3: iconDone,
-};
+const priorityLabels = ['Low','Medium','High'];
+
+
+const statusIcons = [iconWaiting, iconInProgress, iconTesting, iconDone];
 
 interface TaskCardProps {
   task: Task;
   index: number;
-  onEdit: (task: Task) => void;
+  onUpdate: (task: Task) => void;
   onDelete: (id: string) => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, index, onEdit, onDelete }) => {
-  const assignee = dictionary.assignees[task.assigneeId.toString()];
-  const priorityId = task.priorityId;
-  const statusId = task.statusId;
-  const statusLabel = dictionary.statuses[statusId.toString()];
+const TaskCard: React.FC<TaskCardProps> = ({ task, index, onUpdate, onDelete }) => {
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleSubmit = (data: any) => {
+    onUpdate({ ...task,
+      taskName: data.taskName,
+      description: data.description,
+      dueDate: data.dueDate,
+      assigneeId: Number(data.assigneeId),
+      priorityId: Number(data.priorityId),
+      statusId: Number(data.statusId),
+    });
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    return (
+      <Card>
+        <AddEditTaskForm task={task} onSubmit={handleSubmit} />
+      </Card>
+    );
+  }
 
   return (
     <Draggable draggableId={task.id} index={index}>
@@ -166,25 +173,33 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, index, onEdit, onDelete }) =>
               <img className="task-icon" src={CircleIcon} alt="Task" />
               {task.taskName}
             </TaskTitle>
-            <DeleteIcon
+            <IconButton
               src={TrashIcon}
               alt="Delete"
               onClick={e => { e.stopPropagation(); onDelete(task.id); }}
             />
+            <IconButton
+              src={CircleIcon}
+              alt="Edit"
+              onClick={e => { e.stopPropagation(); setIsEditing(true); }}
+            />
           </TitleRow>
+
           <AssignmentRow>
-            <span>{assignee}</span>
+            <span>{dictionary.assignees[task.assigneeId.toString()]}</span>
             <span>{formatDate(task.dueDate)}</span>
           </AssignmentRow>
+
           <BadgesRow>
-            <DifficultyBadge priorityId={priorityId}>
-              {getPriorityLabel(priorityId)}
+            <DifficultyBadge priorityId={task.priorityId}>
+              {priorityLabels[task.priorityId]}
             </DifficultyBadge>
-            <StatusBadge statusId={statusId}>
-              <img src={statusIcons[statusId]} alt={statusLabel} />
-              {statusLabel}
+            <StatusBadge statusId={task.statusId}>
+              <img src={statusIcons[task.statusId]} alt="" />
+              {dictionary.statuses[task.statusId.toString()]}
             </StatusBadge>
           </BadgesRow>
+
           <Description>{task.description}</Description>
         </Card>
       )}
